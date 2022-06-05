@@ -41,6 +41,7 @@ pub fn execute(
     match msg {
         ExecuteMsg::Increment {} => try_increment(deps),
         ExecuteMsg::Reset { count } => try_reset(deps, info, count),
+        ExecuteMsg::Hello { name } => hello(deps, info, name),
     }
 }
 
@@ -62,6 +63,13 @@ pub fn try_reset(deps: DepsMut, info: MessageInfo, count: i32) -> Result<Respons
         Ok(state)
     })?;
     Ok(Response::new().add_attribute("method", "reset"))
+}
+
+pub fn hello(_deps: DepsMut, _info: MessageInfo, name: String) -> Result<Response, ContractError> {
+    let hello_with_name = format!("hello, {}!", name);
+    Ok(Response::new()
+        .add_attribute("method", "hello")
+        .add_attribute("hello_with_name", hello_with_name))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
