@@ -4,8 +4,8 @@ use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response,
 use cw2::set_contract_version;
 
 use crate::error::ContractError;
-use crate::msg::{CountResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
-use crate::state::{State, STATE};
+use crate::msg::{CountResponse, NameResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
+use crate::state::{State, STATE, NAME};
 
 // version info for migration info
 const CONTRACT_NAME: &str = "crates.io:cw-handbook";
@@ -65,7 +65,8 @@ pub fn try_reset(deps: DepsMut, info: MessageInfo, count: i32) -> Result<Respons
     Ok(Response::new().add_attribute("method", "reset"))
 }
 
-pub fn hello(_deps: DepsMut, _info: MessageInfo, name: String) -> Result<Response, ContractError> {
+pub fn hello(deps: DepsMut, _info: MessageInfo, name: String) -> Result<Response, ContractError> {
+    NAME.save(deps.storage, &name)?;
     let hello_with_name = format!("hello, {}!", name);
     Ok(Response::new()
         .add_attribute("method", "hello")
@@ -76,12 +77,18 @@ pub fn hello(_deps: DepsMut, _info: MessageInfo, name: String) -> Result<Respons
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetCount {} => to_binary(&query_count(deps)?),
+        QueryMsg::GetName {} => to_binary(&query_name(deps)?),
     }
 }
 
 fn query_count(deps: Deps) -> StdResult<CountResponse> {
     let state = STATE.load(deps.storage)?;
     Ok(CountResponse { count: state.count })
+}
+
+fn query_name(deps: Deps) -> StdResult<NameResponse> {
+    let name = NAME.load(deps.storage)?;
+    Ok(NameResponse { name })
 }
 
 #[cfg(test)]
