@@ -1,6 +1,7 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cw_utils::must_pay;
 use cw2::set_contract_version;
 
 use crate::error::ContractError;
@@ -42,6 +43,7 @@ pub fn execute(
         ExecuteMsg::Increment {} => try_increment(deps),
         ExecuteMsg::Reset { count } => try_reset(deps, info, count),
         ExecuteMsg::Hello { name } => hello(deps, info, name),
+        ExecuteMsg::Deposit {} => deposit(deps, info),
     }
 }
 
@@ -71,6 +73,14 @@ pub fn hello(deps: DepsMut, _info: MessageInfo, name: String) -> Result<Response
     Ok(Response::new()
         .add_attribute("method", "hello")
         .add_attribute("hello_with_name", hello_with_name))
+}
+
+pub fn deposit(_deps: DepsMut, info: MessageInfo) -> Result<Response, ContractError> {
+    let payment = must_pay(&info, "upebble")?;
+    Ok(Response::new()
+        .add_attribute("method", "deposit")
+        .add_attribute("payment", payment)
+    )
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
