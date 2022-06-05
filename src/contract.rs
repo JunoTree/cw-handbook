@@ -1,6 +1,6 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{coins, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128, BankMsg};
 use cw_utils::must_pay;
 use cw2::set_contract_version;
 
@@ -44,6 +44,7 @@ pub fn execute(
         ExecuteMsg::Reset { count } => try_reset(deps, info, count),
         ExecuteMsg::Hello { name } => hello(deps, info, name),
         ExecuteMsg::Deposit {} => deposit(deps, info),
+        ExecuteMsg::Withdraw { amount } => withdraw(deps, info, amount),
     }
 }
 
@@ -81,6 +82,14 @@ pub fn deposit(_deps: DepsMut, info: MessageInfo) -> Result<Response, ContractEr
         .add_attribute("method", "deposit")
         .add_attribute("payment", payment)
     )
+}
+
+pub fn withdraw(_deps: DepsMut, info: MessageInfo, amount: Uint128) -> Result<Response, ContractError> {
+    Ok(Response::new().add_attribute("method", "withdraw")
+        .add_message(BankMsg::Send {
+            to_address: info.sender.to_string(),
+            amount: coins(amount.u128(), "upebble"),
+        }))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
